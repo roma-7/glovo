@@ -11,4 +11,4 @@ RUN pip install --upgrade pip && \
 
 COPY nginx/nginx.conf /etc/nginx/conf.d/
 
-COPY . /app/
+COPY .. /app/
