@@ -1,5 +1,41 @@
 from .models import *
 from rest_framework import serializers
+from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'date_registered']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = UserProfile.objects.create_user(**validated_data)
+        return user
+
+    def to_representation(self, instance):
+        refresh = RefreshToken.for_user(instance)
+        return {
+            'user': {
+                'username': instance.username,
+                'email': instance.email,
+            },
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        user = authenticate(username=data["username"], password=data["password"])
+        if not user:
+            raise serializers.ValidationError("Неверные учетные данные.")
+        return user
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -23,7 +59,7 @@ class ContactInfoSerializer(serializers.ModelSerializer):
 class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'product_name', 'product_image', 'price', 'description', ]
+        fields = ['id', 'product_name', 'product_image', 'price']
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -45,9 +81,17 @@ class StoreSerializer(serializers.ModelSerializer):
 
 
 class StoreListSerializer(serializers.ModelSerializer):
+    reviews_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Store
-        fields = ['id', 'store_name', 'store_image']
+        fields = ['id', 'store_name', 'store_image', 'reviews_count']
+
+    def get_reviews_count(self, obj):
+        reviews_count = obj.reviews.count() if hasattr(obj, 'reviews') else 0
+        rating = obj.rating if hasattr(obj, 'rating') else 0
+        return f"{reviews_count}+ ({rating}%)"
+
 
 
 class StoreDetailSerializer(serializers.ModelSerializer):

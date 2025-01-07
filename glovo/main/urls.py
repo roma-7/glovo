@@ -9,6 +9,9 @@ router.register(r'cart-items', CartItemViewSet)
 router.register(r'couriers', CourierViewSet)
 
 urlpatterns = [
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='Logout'),
     path('', include(router.urls)),
     path('users/', UserProfileListApiView.as_view(), name='user_list'),
     path('users/<int:pk>/', UserProfileDetailListView.as_view(), name='user_detail'),
