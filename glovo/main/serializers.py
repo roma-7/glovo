@@ -87,12 +87,6 @@ class StoreListSerializer(serializers.ModelSerializer):
         model = Store
         fields = ['id', 'store_name', 'store_image', 'reviews_count']
 
-    def get_reviews_count(self, obj):
-        reviews_count = obj.reviews.count() if hasattr(obj, 'reviews') else 0
-        rating = obj.rating if hasattr(obj, 'rating') else 0
-        return f"{reviews_count}+ ({rating}%)"
-
-
 
 class StoreDetailSerializer(serializers.ModelSerializer):
     store_product = ProductListSerializer(many=True, read_only=True)
